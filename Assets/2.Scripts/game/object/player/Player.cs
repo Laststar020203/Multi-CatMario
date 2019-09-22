@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-public abstract class Player : MonoBehaviour, IStateController
+public abstract class Player : MonoBehaviour, IStateController, IPacketDataSender
 {
 
     public float speed;
@@ -87,6 +87,11 @@ public abstract class Player : MonoBehaviour, IStateController
             isJump = false;
         }
         */
+    }
+
+    public string DataPasing(object o)
+    {
+        throw new System.NotImplementedException();
     }
 
 

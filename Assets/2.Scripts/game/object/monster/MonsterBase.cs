@@ -10,7 +10,7 @@ public class MonsterBase : MonoBehaviour
     void Start()
     {
 
-         player = GameObject.Find("Player").GetComponent<Player>();
+         player = GameObject.Find("Cat").GetComponent<Player>();
 
     }
 
@@ -18,7 +18,7 @@ public class MonsterBase : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Monster")
+        if (other.gameObject.tag == "Player")
         {
            player.Die();
         }

@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PacketManager : MonoBehaviour
+public class Turn : Move
 {
+
+    Move move;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        move = GameObject.Find("Block").GetComponent<Move>();
     }
 
     // Update is called once per frame
@@ -15,4 +18,14 @@ public class PacketManager : MonoBehaviour
     {
         
     }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Walls")
+        {
+            
+        }
+
+
+    }
+
 }

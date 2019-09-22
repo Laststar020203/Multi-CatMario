@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Move : MonoBehaviour
+public class Move : MonsterBase
 {
     public float MoveSpeed = 0;
-    public string Direction = "Right";
+    public int way = 2;
+    //0 = up, 1 = down, 2 = left, 3 = right
+    float xMove, yMove;
 
     // Start is called before the first frame update
     void Start()
@@ -22,25 +24,31 @@ public class Move : MonoBehaviour
 
     void Moves()
     {
-        Vector3 moveVect3 = Vector3.zero;
+      //  Vector3 moveVect3 = Vector3.zero;
 
-        if (Direction.Equals("Right"))
+        if (way == 0)
         {
-            moveVect3 = Vector3.right;
-        }else if (Direction.Equals("Left"))
-        {
-            moveVect3 = Vector3.left;
+            yMove = MoveSpeed * Time.deltaTime;
+            // moveVect3 = Vector3.up;
         }
-        else if (Direction.Equals("Up"))
+        else if (way == 1)
         {
-            moveVect3 = Vector3.up;
+            yMove = -MoveSpeed * Time.deltaTime;
+            // moveVect3 = Vector3.down;
         }
-        else if (Direction.Equals("Down"))
+        else if (way == 2)
         {
-            moveVect3 = Vector3.down;
+            xMove = -MoveSpeed * Time.deltaTime;
+            //moveVect3 = Vector3.left;
+          
+        }
+        else if (way == 3)
+        {
+            xMove = MoveSpeed * Time.deltaTime;
+              // moveVect3 = Vector3.right;
         }
 
-        transform.position += moveVect3 * MoveSpeed * Time.deltaTime;
-
+        //transform.position += moveVect3 * MoveSpeed * Time.deltaTime;
+        transform.Translate(new Vector3(xMove, yMove, 0));
     }
 }

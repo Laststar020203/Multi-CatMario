@@ -8,22 +8,26 @@ public class Client : MonoBehaviour
 {
     private bool socketReady;
     private TcpClient socket;
-    private NetworkStream stream;
+    private NetworkStream ns;
+    private Stream stream;
 
-         
+    private static byte userCode = Packet.Target.ACCESS_REQUESTER;
+    public static byte UserCode { get { return userCode; } set { userCode = value; } }                                                                                                                                                                                                                           
+
     private void Start()
     {
-        //ConnectToServer("127.0.0.1", 5252);
+        
     }
 
-    public void ConnectToServer(int port)
+    public void ConnectToServer(string ip)
     {
         if (socketReady)
             return;
         try
         {
-            socket = new TcpClient("127.0.0.1", port);
-            stream = socket.GetStream();
+            socket = new TcpClient(ip, 5252);
+            ns = socket.GetStream();
+            stream = new BufferedStream(stream);
             socketReady = true;
             Debug.Log("Connect Succes!");
 
@@ -41,8 +45,8 @@ public class Client : MonoBehaviour
         
         if (socketReady)
         {
-            Send(new Packet(0, 0, Packet.Type.ACCESS_SUCCESS, "Connect!"));
-            if (stream.DataAvailable)
+            //Send(new Packet(0, 0, Packet.Type.ACCESS_SUCCESS, "Connect!"));
+            if (ns.DataAvailable)
             {
                
                 Packet packet;
@@ -66,7 +70,9 @@ public class Client : MonoBehaviour
         if (!socketReady)
             return;
 
+        if(stream != null)
         stream.Close();
+        if(socket != null)
         socket.Close();
         socketReady = false;
     }

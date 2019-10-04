@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Turn : Move
+public class ClientReceiver : MonoBehaviour
 {
-
-    Move move;
-
     // Start is called before the first frame update
     void Start()
     {
-        move = GameObject.Find("Block").GetComponent<Move>();
+        
     }
 
     // Update is called once per frame
@@ -18,14 +15,4 @@ public class Turn : Move
     {
         
     }
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == "Walls")
-        {
-            
-        }
-
-
-    }
-
 }

@@ -17,10 +17,18 @@ public class Packet
     private readonly byte[] packetData;
 
 
+    public static class Target
+    {
+        public const byte SERVER = 0;
+        public const byte ACCESS_REQUESTER = 6;
+    }
     public static class Type
     {
-        public const byte UNABLE_ACCES = 0x01;
-        public const byte ACCESS_SUCCESS = 0x02;
+        public const byte REQUEST_ACCESS = 0x00; //접속 요청
+        public const byte UNABLE_ACCESS = 0x01;
+        public const byte SUCCESS_ACCESS = 0x02;
+        public const byte FAIL = 0x04;
+        public const byte OK = 0x07;
     }
 
     public byte Sender { get { return sender; } }
@@ -33,28 +41,16 @@ public class Packet
     public byte[] Data { get { return packetData; } }
 
 
-    public Packet(byte sender, byte receiver, byte type)
+    public Packet(byte sender, byte receiver, byte type) : this(sender, receiver, type, new byte[1] { 0})
     {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.head = new byte[11];
-        head[0] = sender;
-        head[1] = receiver;
-        head[2] = type;
-        this.size = 1;
+     
+    }
 
-        Buffer.BlockCopy(BitConverter.GetBytes(size), 0, this.head, 3, 4);
-        Buffer.BlockCopy(BitConverter.GetBytes(matchCode), 0, this.head, 7, 4); //gameManager에서 값 받아올거임
-
-        this.body = new byte[1] { 0 };
-        this.packetData = new byte[11 + body.Length];
-
-        Buffer.BlockCopy(head, 0, this.packetData, 0, head.Length);
-        Buffer.BlockCopy(body, 0, this.packetData, 11, body.Length);
-
+    public Packet(byte sender, byte receiver, byte type, PacketData data): this(sender, receiver, type, data.PData)
+    {
 
     }
-    public Packet(byte sender, byte receiver, byte type, string data)
+    public Packet(byte sender, byte receiver, byte type, byte[] data)
     {
       
         this.sender = sender;
@@ -69,7 +65,7 @@ public class Packet
         Buffer.BlockCopy(BitConverter.GetBytes(size), 0, this.head, 3, 4);
         Buffer.BlockCopy(BitConverter.GetBytes(matchCode), 0, this.head, 7, 4);
 
-        this.body = Encoding.UTF8.GetBytes(data);
+        this.body = data;
 
         this.packetData = new byte[11 + body.Length];
 
@@ -78,13 +74,4 @@ public class Packet
 
 
     }
-
-
-
-
-
-
-
-
-
 }

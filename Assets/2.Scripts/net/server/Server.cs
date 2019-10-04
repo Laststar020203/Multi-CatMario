@@ -14,10 +14,8 @@ public class Server : MonoBehaviour
 
     private List<ServerClient> clients;
     private TcpListener server;
-    public int port;
     private bool serverStarted;
 
-    public Text t;
 
     private void Awake()
     {
@@ -25,7 +23,7 @@ public class Server : MonoBehaviour
         
     }
 
-    public void ServerStart(int port)
+    public bool ServerStart(int port)
     {
         try
         {
@@ -34,12 +32,15 @@ public class Server : MonoBehaviour
             StartListening();
             serverStarted = true;
             Debug.Log("Server has been started on port " + port.ToString());
-            t.text = "Server has been started on port " + port.ToString() + " " + IPAddress.Any;
+
+            return true;
         }
         catch(Exception e)
         {
             Debug.Log("Socket error: " + e.Message);
-            t.text = "Socket error: " + e.Message;
+
+
+            return false;
         }
     }
 
@@ -64,12 +65,8 @@ public class Server : MonoBehaviour
             return;
         }
 
-        //Send(client, new Packet(0, new PacketData(), client.ID));
         clients.Add(client);
 
-      
-        //임시
-        Send(client, new Packet(0, 5, Packet.Type.ACCESS_SUCCESS, "Hello"));
 
         Thread thread = new Thread(() => ClientInComingPacket(client));
         thread.Start();
@@ -83,9 +80,9 @@ public class Server : MonoBehaviour
 
         while (IsConnected(client.Tcp))
         {
-            NetworkStream e = client.getStream();
-            if (e.DataAvailable)
+            if (client.IsDataAvailable())
             {
+                Stream e = client.getStream();
                 Packet packet;
                 PacketParser.Pasing(e, out packet);
                 if(packet != null)
@@ -133,12 +130,12 @@ public class Server : MonoBehaviour
         if (!serverStarted)
             return;
 
-
+        //t.text = PacketManager.instance.receivePacket.Count.ToString();
     }
 
     private void Send(ServerClient client, Packet packet)
     {
-        NetworkStream stream = client.getStream();
+        Stream stream = client.getStream();
         byte[] writerData = packet.Data;
         stream.Write(writerData, 0, writerData.Length);
         stream.Flush();
@@ -150,22 +147,31 @@ public class ServerClient
 {
     private TcpClient tcp;
     private string clientIP;
-    private NetworkStream stream;
+    private Stream stream;
+    private NetworkStream ns;
 
     private byte id;
     
     public byte ID { get { return id; } }
     public TcpClient Tcp { get { return tcp; } }
 
+
     public ServerClient(TcpClient client, byte id)
     {
         this.tcp = client;
         this.id = id;
-        this.stream = tcp.GetStream();
+        this.ns = tcp.GetStream();
+        this.stream = new BufferedStream(tcp.GetStream());
+        
     }
 
-    public NetworkStream getStream() {
+    public Stream getStream() {
         return stream;
+    }
+
+    public bool IsDataAvailable()
+    {
+        return ns.DataAvailable;
     }
 
     public void Close()

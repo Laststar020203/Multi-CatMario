@@ -4,11 +4,12 @@ using UnityEngine;
 using System.Text;
 using System;
 using System.Net.Sockets;
+using System.IO;
 
 public class PacketParser
 {
   
-    public static void Pasing(NetworkStream e, out Packet packet)
+    public static void Pasing(Stream e, out Packet packet)
     {
         byte[] header = new byte[11];
         e.Read(header, 0, 11);
@@ -22,7 +23,7 @@ public class PacketParser
         byte[] body = new byte[size];
         e.Read(body, 0, Convert.ToInt32(size));
 
-        packet = new Packet(sender, receiver, type, Encoding.Default.GetString(body));
+        packet = new Packet(sender, receiver, type,body);
         
     }
         /*

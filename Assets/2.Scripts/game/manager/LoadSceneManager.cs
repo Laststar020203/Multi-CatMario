@@ -10,14 +10,18 @@ public class LoadSceneManager : MonoBehaviour
     private void Start()
     {
         if (instance != null)
-            Destroy(this);
+        {
+            Destroy(this.gameObject);
+            return;
+        }
         instance = this;
     }
 
     public void NextSceneLoad()
     {
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        SceneManager.LoadScene(currentSceneIndex + 1);
+        GameManager.instance.QuitScene(currentSceneIndex);
+        SceneManager.LoadScene(currentSceneIndex + 1, LoadSceneMode.Single);
     }
 
 
@@ -25,8 +29,21 @@ public class LoadSceneManager : MonoBehaviour
     {
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         if (currentSceneIndex == 0) return;
-        SceneManager.LoadScene(currentSceneIndex - 1);
-        GameManager.instance.StartScene(currentSceneIndex - 1);
+        GameManager.instance.QuitScene(currentSceneIndex);
+        SceneManager.LoadScene(currentSceneIndex - 1, LoadSceneMode.Single);
+    }
+
+    public void SceneLoad(int index)
+    {
+        GameManager.instance.QuitScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(index, LoadSceneMode.Single);
+    }
+
+    public void GameSceneLoad(int mapIndex)
+    {
+        if (SceneManager.GetActiveScene().buildIndex != 2) return;
+        GameManager.instance.QuitScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(mapIndex, LoadSceneMode.Additive);
     }
 
 }

@@ -6,6 +6,15 @@ TagManager:
   tags:
   - Monster
   - Wall
+  - PLAYER
+  - GROUND
+  - CONTROLLER
+  - REMOTEPLAYER
+  - PLAYMANAGER
+  - NPC
+  - GAMECAMERA
+  - GAMECAMEREA
+  - CANVAS
   layers:
   - Default
   - TransparentFX
@@ -15,7 +24,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - PLAYER
   - 
   - 
   - 

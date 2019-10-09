@@ -1,164 +1,110 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 
-public abstract class Player : MonoBehaviour, IStateController, IPacketDataSender
+
+public abstract class Player : MonoBehaviour
 {
 
-    public float speed;
-    public float jumpHoilderMaxTime;
-    public float jumpPower;
 
     protected Transform tr;
-    protected Rigidbody2D rb;
     protected SpriteRenderer sr;
 
-    protected Controller _controller;
-
     [SerializeField]
-    protected bool isRightLook;
-    protected bool stunt;
-    protected bool isJump;
+    protected bool isRightLook = false;
 
-    public StateMachine controller => _controller;
+    protected Transform modelTr;
 
-    private void Start()
+    protected byte id;
+    protected string name;
+    protected byte characterCode;
+
+    protected Animator animator;
+
+    protected readonly string IsJumping = "IsJumping";
+    protected readonly string IsDead = "IsDead";
+    protected readonly string IsWalking = "IsWalking";
+
+    public byte ID { get { return id; } }
+    public string Name { get { return name; } }
+    public Vector2 Pos { get { return tr.position; } }
+
+    public abstract bool IsDying {get;}
+
+
+
+    public void Init(byte ID, string name, byte characterCode)
     {
-        tr = GetComponent<Transform>();
-        rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
-        _controller = new Controller(gameObject);
-       
+        this.id = ID;
+        this.name = name;
+        this.characterCode = characterCode;
+
+
+        switch (characterCode)
+        {
+            case 0:
+                sr.color = new Color(0, 195, 255);
+                break;
+            case 1:
+                sr.color = new Color(255, 0, 0);
+                break;
+            case 2:
+                sr.color = new Color(80, 188, 223);
+                break;
+            case 3:
+                sr.color = new Color(255, 255, 0);
+                break;                
+        }
+
+        tr.GetComponentInChildren<Text>().text = TextColor.Wear(characterCode, name);
     }
 
     protected void Reverse()
     {
-        Vector3 scale = tr.localScale;
-        scale.z *= -1;
-        tr.localScale = scale;
+        Vector3 scale = modelTr.localScale;
+        scale.x *= -1;
+        modelTr.localScale = scale;
         isRightLook = !isRightLook;
     }
 
-    protected void RightMove()
+    protected virtual void RightMove()
     {
-        if (stunt) return;
+        if (!isRightLook) Reverse();
+        animator.SetBool(IsWalking, true);
+    }
+
+    protected virtual void LeftMove()
+    {
         if (isRightLook) Reverse();
-        rb.AddForce(Vector2.right * speed);
+        animator.SetBool(IsWalking , true);
     }
 
-    protected void LeftMove()
-    {
-        if (stunt) return;
-        if (isRightLook) Reverse();
-        rb.AddForce(-Vector2.right * speed);
-    }
-
-    protected void Jump()
+    protected virtual void FireBall()
     {
 
     }
 
-    protected void FireBall()
+    protected virtual void setSpawnPoint()
     {
 
     }
 
-    protected void setSpawnPoint()
-    {
+    public abstract void Die();
 
-    }
+    public abstract void Respawn();
 
-    public void Die()
-    {
-        _controller.ChangeState<Dead>();
-        Debug.Log("PLAYER DIE!");
-    }
 
     public void Transformation(Sprite sprite)
     {
+        animator.enabled = false;
         sr.sprite = sprite;
         
     }
 
-    private void OnCollisionEnter2D(Collision2D coll)
-    {
-        /*
-        if (coll.collider.CompareTag("GROUND"))
-        {
-            isJump = false;
-        }
-        */
-    }
-
-    public string DataPasing(object o)
-    {
-        throw new System.NotImplementedException();
-    }
 
 
-    #region State Machine
-    public abstract class PlayerState : State
-    {
-        protected Player owner;
-        protected StateMachine controller;
 
-        private void Awake()
-        {
-            owner = GetComponent<Player>();
-            controller = owner.controller;
-        }
-
-    }
-    public class Idle : PlayerState
-    {
-        public override void Enter()
-        {
-            owner.stunt = false;
-            
-        }
-
-        public override void Exit()
-        {
-            owner.stunt = true;
-        }
-    }
-
-    public class Importent : PlayerState
-    {
-        public override void Enter()
-        {
-
-        }
-
-        public override void Exit()
-        {
-            base.Exit();
-        }
-    }
-
-    public class Dead : PlayerState
-    {
-        public override void Enter()
-        {
-
-
-        }
-    }
-
-    //상태머신 안에 메소드는 상태만 변경해준다.
-    public class Controller : StateMachine
-    {
-        public Controller(GameObject owner) : base(owner)
-        {
-
-        }
-
-        protected override void Control()
-        {
-
-        }
-    }
-
-    #endregion
+    
 }
 
 

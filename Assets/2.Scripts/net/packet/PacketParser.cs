@@ -13,12 +13,12 @@ public class PacketParser
     {
         byte[] header = new byte[11];
         e.Read(header, 0, 11);
+
         byte sender = header[0];
         byte receiver = header[1];
         byte type = header[2];
         uint size = BitConverter.ToUInt32(header, 3);
         uint mathcode = BitConverter.ToUInt32(header, 7);
-
 
         byte[] body = new byte[size];
         e.Read(body, 0, Convert.ToInt32(size));

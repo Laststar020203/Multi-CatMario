@@ -15,6 +15,7 @@ public interface IPacketDataReceiver
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    bool CheckResponsible(byte type);
+    bool CheckResponsible(Packet packet);
+
 
 }

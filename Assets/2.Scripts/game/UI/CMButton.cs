@@ -24,8 +24,7 @@ public class CMButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     private float time;
 
     private bool isEnd;
-    private bool isTouched;
-    private bool isPressed;
+
 
     public StateMachine controller => _controller;
 
@@ -74,6 +73,7 @@ public class CMButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         public override void Enter()
         {
             owner.time = Time.time;
+            owner.handler.Invoke(new ButtonEvent(ButtonEvent.Enter, 0));
             execute = StartCoroutine(Execute());
             
         }
@@ -97,7 +97,7 @@ public class CMButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         public override void Enter()
         {
-            owner.myImage.sprite = owner.normal;
+            //owner.myImage.sprite = owner.normal;
             owner.handler.Invoke(new ButtonEvent(ButtonEvent.EXIT, 0));
         }
     }
@@ -117,7 +117,7 @@ public class CMButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
 public class ButtonEvent : Event
 {
-
+    public const int Enter = 0;
     public const int HOLD = 1;
     public const int EXIT = 2;
 

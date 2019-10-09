@@ -19,5 +19,5 @@ public abstract class PacketData
     }
 
     protected abstract byte[] Serialize();
-    protected abstract object Deserialize();
+    protected abstract void Deserialize();
 }

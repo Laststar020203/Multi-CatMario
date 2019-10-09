@@ -9,18 +9,33 @@ using System.Text;
 using System.IO;
 using UnityEngine.UI;
 
-public class Server : MonoBehaviour
+public class Server : MonoBehaviour, IEventListener
 {
 
-    private List<ServerClient> clients;
+    private Dictionary<byte ,ServerClient> clients;
     private TcpListener server;
     private bool serverStarted;
+    private List<Thread> packetReceiveThread;
 
+    public float sendDelay = 0.001f;
+    private int sendDelayM;
+    private WaitForSeconds ws;
+
+    private Thread sendThread;
+    public Dictionary<byte, ServerClient> Clients { get { return clients; } }
 
     private void Awake()
     {
-        clients = new List<ServerClient>();
-        
+        clients = new Dictionary<byte, ServerClient>();
+        packetReceiveThread = new List<Thread>();
+
+        sendDelayM = (int)sendDelay * 1000;
+
+    }
+
+    private void Start()
+    {
+        AddListener();
     }
 
     public bool ServerStart(int port)
@@ -32,6 +47,10 @@ public class Server : MonoBehaviour
             StartListening();
             serverStarted = true;
             Debug.Log("Server has been started on port " + port.ToString());
+
+
+            sendThread = new Thread(() => Delivery());
+            sendThread.Start();
 
             return true;
         }
@@ -47,32 +66,55 @@ public class Server : MonoBehaviour
     private void StartListening()
     {
         server.BeginAcceptTcpClient(AcceptTcpClient, server);
+
     }
+
 
     private void AcceptTcpClient(IAsyncResult ar) //Rock 걸어주기
     {
         TcpListener listener = (TcpListener)ar.AsyncState;
 
-        ServerClient client = new ServerClient(listener.EndAcceptTcpClient(ar) , (byte)clients.Count);
+        TcpClient empclient = listener.EndAcceptTcpClient(ar);
 
-  
+        Debug.Log("ENter New CLient ");
 
+        if (empclient == null) Debug.Log("Cleint empty"); 
+
+        EventManager.CallEvent(new ReceiveNewClientEvent(empclient));
         
-        if (clients.Count > 4) //방이 꽉 찼을때
-        {
-            Send(client, new Packet(0, 5, Packet.Type.UNABLE_ACCES));//접속 불가란 신호를 보냄
-            client.Close();
-            return;
-        }
 
-        clients.Add(client);
+        StartListening();
+    }
+
+    private void RegisterClient(ClientJoinEvent e)
+    {
+        ServerClient client = new ServerClient(e.Client, e.User.ID);
+        BroadCast(new Packet(Packet.Target.SERVER, Packet.Target.ALL, Packet.Type.REGISTER_CLIENT, e.User));
+
+
+        Send(client, new Packet(Packet.Target.SERVER, Packet.Target.ACCESS_REQUESTER, Packet.Type.OK, new byte[2] { 2, e.User.ID }), true);
+
+
+        client.Tcp.ReceiveBufferSize = 500;
+        client.Tcp.SendBufferSize = 500;
+
+        clients.Add(client.ID, client);
 
 
         Thread thread = new Thread(() => ClientInComingPacket(client));
         thread.Start();
 
-        StartListening();
+        packetReceiveThread.Add(thread);
+
     }
+
+    /*
+    private IEnumerator WaitBroadCast(ref bool canSend, Packet pakcet)
+    {
+        while (canSend) yield return null;
+        BroadCast(pakcet);
+    }
+    */
 
     private void ClientInComingPacket(ServerClient client)
     {
@@ -84,22 +126,38 @@ public class Server : MonoBehaviour
             {
                 Stream e = client.getStream();
                 Packet packet;
+                //비동기? asyncRead
                 PacketParser.Pasing(e, out packet);
-                if(packet != null)
-                PacketManager.instance.putPacket(packet);
-
+                if (packet != null)
+                {
+                    if (packet.Receiver != Packet.Target.SERVER)
+                        PacketManager.instance.PutPacket(packet);
+                    else
+                    {
+                        if(packet.Receiver == Packet.Target.ALL)
+                            PacketManager.instance.PutPacket(packet);
+                        PacketManager.instance.GetPacket(packet);
+                    }
+                }
             }
 
         }
 
-        clients.Remove(client);
-        client.Close();
-        
-
+        EventManager.CallEvent(new ClientQuitEvent(client, UserManager.instance.GetUser(client)));
 
     }
     
-    private bool IsConnected(TcpClient c)
+    private void ClientJoinListening(ReceiveNewClientEvent e)
+    {
+        TcpClient client = e.Client;
+        GameObject receiveObj = new GameObject("NewClientReceiver");
+        NewClientReceiver clientReceiver = receiveObj.AddComponent<NewClientReceiver>();
+        clientReceiver.Accept(client, 10.0f);
+        receiveObj.transform.SetParent(this.gameObject.transform);
+    }
+
+
+    public bool IsConnected(TcpClient c)
     {
         try
         {
@@ -123,33 +181,144 @@ public class Server : MonoBehaviour
         }
     }
     
-
-
-    void Update()
+    private void Delivery()
     {
-        if (!serverStarted)
-            return;
+        while (serverStarted) {
+            try
+            {
+                Packet[] packets = PacketManager.instance.SendPacket;
 
-        //t.text = PacketManager.instance.receivePacket.Count.ToString();
+                foreach (Packet p in packets)
+                {
+                    if (p.Receiver == Packet.Target.ALL)
+                        BroadCast(p);
+                    else
+                    {
+                        if (clients.ContainsKey(p.Receiver))
+                            Send(clients[p.Receiver], p, false);
+                    }
+                }
+
+                foreach (ServerClient c in clients.Values)
+                {
+                    c.getStream().Flush();
+                }
+
+                Thread.Sleep(sendDelayM);
+
+            }catch(Exception e){
+                Console.WriteLine(e);
+            }
+        }
     }
 
-    private void Send(ServerClient client, Packet packet)
+    public void Send(ServerClient client, Packet packet, bool Immediately)
     {
-        Stream stream = client.getStream();
+        Send(client.Tcp, packet, Immediately);
+    }
+
+    public void Send(TcpClient client, Packet packet, bool Immediately)
+    {
+        NetworkStream stream = client.GetStream();
         byte[] writerData = packet.Data;
         stream.Write(writerData, 0, writerData.Length);
-        stream.Flush();
+        if (Immediately)
+            stream.Flush();
     }
-    
+
+    public void BroadCast(Packet packet)
+    {
+        foreach(ServerClient client in clients.Values)
+        {
+            Send(client, packet, false);
+        }
+    }
+
+    public void Kick(TcpClient c)
+    {
+        if (c == null) return;
+        Send(c, new Packet(Packet.Target.SERVER, Packet.Target.ACCESS_REQUESTER, Packet.Type.KICK), true);
+        c.GetStream().Close();
+        c.Close();
+    }
+
+    public void Kick(ServerClient c)
+    {
+        if (c == null) return;
+        if (clients.ContainsKey(c.ID))
+        {
+            Send(c, new Packet(Packet.Target.SERVER, c.ID, Packet.Type.KICK), true);
+            EventManager.CallEvent(new ClientQuitEvent(c, UserManager.instance.GetUser(c)));
+
+        }
+   }
+
+    private void ClientExit(ClientQuitEvent e)
+    {
+
+        if (e.User != null)
+        {
+            clients.Remove(e.Client.ID);
+            //UserManager.instance.ExitUser(user);
+            e.Client.Close();
+
+            BroadCast(new Packet(Packet.Target.SERVER, Packet.Target.ALL, Packet.Type.EXIT_CLIENT, e.User));
+        }
+    }
+
+
+
+    public void ServerClose()
+    {
+        serverStarted = false;
+        StopAllCoroutines();
+        sendThread.Abort();
+
+        foreach(ServerClient client in clients.Values)
+        {
+            Kick(client);
+        }
+        server.Stop();
+    }
+
+    private void OnApplicationQuit()
+    {
+        ServerClose();
+
+    }
+
+    private void OnDestroy()
+    {
+        ServerClose();
+        RemoveListener();
+    }
+
+    private void OnDisable()
+    {
+        ServerClose();
+        RemoveListener();
+    }
+
+    public void AddListener()
+    {
+        EventManager.AddListener<ReceiveNewClientEvent>(ClientJoinListening);
+        EventManager.AddListener<ClientJoinEvent>(RegisterClient);
+        EventManager.AddListener<ClientQuitEvent>(ClientExit);
+    }
+
+    public void RemoveListener()
+    {
+        EventManager.RemoveListener<ReceiveNewClientEvent>(ClientJoinListening);
+        EventManager.RemoveListener<ClientJoinEvent>(RegisterClient);
+        EventManager.RemoveListener<ClientQuitEvent>(ClientExit);
+    }
 }
 
 public class ServerClient
 {
     private TcpClient tcp;
     private string clientIP;
-    private Stream stream;
     private NetworkStream ns;
-
     private byte id;
     
     public byte ID { get { return id; } }
@@ -161,12 +330,11 @@ public class ServerClient
         this.tcp = client;
         this.id = id;
         this.ns = tcp.GetStream();
-        this.stream = new BufferedStream(tcp.GetStream());
         
     }
 
     public Stream getStream() {
-        return stream;
+        return ns;
     }
 
     public bool IsDataAvailable()
@@ -176,6 +344,7 @@ public class ServerClient
 
     public void Close()
     {
+        ns.Close();
         tcp.Close();
     }
 

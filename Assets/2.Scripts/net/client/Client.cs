@@ -3,16 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
 using System.IO;
-
+using System.Threading;
 public class Client : MonoBehaviour
 {
     private bool socketReady;
     private TcpClient socket;
     private NetworkStream ns;
-    private Stream stream;
+    private bool isConnected;
 
     private static byte userCode = Packet.Target.ACCESS_REQUESTER;
-    public static byte UserCode { get { return userCode; } set { userCode = value; } }                                                                                                                                                                                                                           
+    public static byte UserCode { get { return userCode; } set { userCode = value; } }
+
+    public float sendDelay = 0.01f;
+    private int sendDelayM;
+    private Thread sendThread;
+
+    public bool IsConnected { get { return isConnected; } }
+
+
+    private void Awake()
+    {
+        sendDelayM = (int)sendDelay * 1000;
+    }
 
     private void Start()
     {
@@ -21,57 +33,92 @@ public class Client : MonoBehaviour
 
     public void ConnectToServer(string ip)
     {
-        if (socketReady)
+        if (isConnected)
             return;
-        try
-        {
-            socket = new TcpClient(ip, 5252);
-            ns = socket.GetStream();
-            stream = new BufferedStream(stream);
-            socketReady = true;
-            Debug.Log("Connect Succes!");
 
-            
-        }
-        catch (System.Exception e)
-        {
-            Debug.Log("Socket Error : " + e.Message);
-        }
+        socket = new TcpClient(ip, 5252);
 
+        socket.ReceiveBufferSize = 500;
+        socket.SendBufferSize = 500;
+
+        ns = socket.GetStream();
+
+        isConnected = true;
+
+        if (sendThread != null)
+        {
+            sendThread.Abort();
+        }
+        sendThread = new Thread(() => Delivery());
+        sendThread.Start();
     }
 
     void Update()
     {
-        
-        if (socketReady)
+
+        if (isConnected)
         {
-            //Send(new Packet(0, 0, Packet.Type.ACCESS_SUCCESS, "Connect!"));
             if (ns.DataAvailable)
             {
                
                 Packet packet;
-                PacketParser.Pasing(stream, out packet);
+                PacketParser.Pasing(ns, out packet);
                 if (packet != null)
                 {
-                    PacketManager.instance.putPacket(packet);
+                    PacketManager.instance.GetPacket(packet);
                 }
+            }
+        }
+
+        if(isConnected && socket != null && !socket.Connected)
+        {
+            CloseSocket();
+            GameManager.instance.NetExit();
+        }
+    }
+
+    private void Delivery()
+    {
+        while (isConnected)
+        {
+            try
+            {
+                Packet[] ps = PacketManager.instance.SendPacket;
+                foreach (Packet p in ps)
+                {
+                    Send(p, false);
+                }
+                ns.Flush();
+
+                Thread.Sleep(sendDelayM);
+            }catch(System.Exception e)
+            {
+
             }
         }
     }
 
-    private void Send(Packet packet)
-    { 
+    private void Send(Packet packet, bool Immediately)
+    {
         byte[] writerData = packet.Data;
-        stream.Write(writerData, 0, writerData.Length);
+        ns.Write(writerData, 0, writerData.Length);
+
+        if (Immediately)
+            ns.Flush();
     }
 
-    private void CloseSocket()
+    public void CloseSocket()
     {
-        if (!socketReady)
+        if (!isConnected)
             return;
 
-        if(stream != null)
-        stream.Close();
+        sendThread.Abort();
+
+        isConnected = false;
+        StopAllCoroutines();
+
+        if(ns != null)
+        ns.Close();
         if(socket != null)
         socket.Close();
         socketReady = false;

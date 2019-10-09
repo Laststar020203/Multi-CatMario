@@ -22,7 +22,7 @@ public class FireBall : MonoBehaviour
     {
         if (coll.collider.CompareTag("LOCALPLAYER"))
         {
-            ClientGameSystem.instance.player.Die();
+            ClientGameSystem.instance.Player.Die();
         }
     }
 

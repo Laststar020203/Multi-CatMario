@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Block
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: Android
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 47
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 1
+    variantMultiplier: 1
+    packables:
+    - {fileID: 2800000, guid: 0b076758baa445742808cb1a06a96367, type: 3}
+    - {fileID: 2800000, guid: c68aacf9fecacd94fb98e3d72043d048, type: 3}
+    - {fileID: 2800000, guid: a609c3b2a8cd23f40bd34a947cd73469, type: 3}
+    - {fileID: 2800000, guid: bcb5caccf8f1d0c42a18e9ffdd93663a, type: 3}
+    - {fileID: 2800000, guid: 1cddae18f48653b419dce4c75f915ecf, type: 3}
+    - {fileID: 2800000, guid: a286cc92fcf90614ea67893aff56f26a, type: 3}
+    - {fileID: 2800000, guid: 82d759da98b362346af33ec80da7704e, type: 3}
+    - {fileID: 2800000, guid: 2c31ceba29b23d84e881a1a2aa4943fe, type: 3}
+    - {fileID: 2800000, guid: c13019c20773835469dd7e419607c5a0, type: 3}
+    - {fileID: 2800000, guid: 3af0920dbe2b62f4b8da1ac8b9d4f8d8, type: 3}
+    - {fileID: 2800000, guid: fa210d8577e02ec4a94c27592b64957e, type: 3}
+    - {fileID: 2800000, guid: 61cef1b894597924b8cc18a98839e56d, type: 3}
+    - {fileID: 2800000, guid: 4dba03cf5c26b404ab57de8333253206, type: 3}
+    - {fileID: 2800000, guid: 88c055f61b4a4fb4594d039b4b5be1b1, type: 3}
+    - {fileID: 2800000, guid: 51fecd8e137682f418b5c8001f45872b, type: 3}
+    - {fileID: 2800000, guid: f148052f3d7f61b478801f78e7bb5680, type: 3}
+    - {fileID: 2800000, guid: 84aa38b2e9fe4b54aa471d3007705cc1, type: 3}
+    - {fileID: 2800000, guid: 6b4b2616e3a858948a597403522c4300, type: 3}
+    - {fileID: 2800000, guid: 441a6fec84a800541bb4cdb5b132af95, type: 3}
+    - {fileID: 2800000, guid: 5b16192a6f133ba4f9b33cf0372b80de, type: 3}
+    - {fileID: 2800000, guid: 84b1cf836e1fd7d4bbd84a2875c4c920, type: 3}
+    - {fileID: 2800000, guid: 358346bf59523b04f96ddc84449a39fc, type: 3}
+    - {fileID: 2800000, guid: 267e54adee024e14a982d38c8c65628e, type: 3}
+    totalSpriteSurfaceArea: 2151424
+    bindAsDefault: 1
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: a286cc92fcf90614ea67893aff56f26a, type: 3}
+  - {fileID: 21300000, guid: a609c3b2a8cd23f40bd34a947cd73469, type: 3}
+  - {fileID: 21300000, guid: 84aa38b2e9fe4b54aa471d3007705cc1, type: 3}
+  - {fileID: 21300000, guid: c13019c20773835469dd7e419607c5a0, type: 3}
+  - {fileID: 21300000, guid: 84b1cf836e1fd7d4bbd84a2875c4c920, type: 3}
+  - {fileID: 21300000, guid: fa210d8577e02ec4a94c27592b64957e, type: 3}
+  - {fileID: 21300000, guid: 6b4b2616e3a858948a597403522c4300, type: 3}
+  - {fileID: 21300000, guid: 88c055f61b4a4fb4594d039b4b5be1b1, type: 3}
+  - {fileID: 21300000, guid: 1cddae18f48653b419dce4c75f915ecf, type: 3}
+  - {fileID: 21300000, guid: 0b076758baa445742808cb1a06a96367, type: 3}
+  - {fileID: 21300000, guid: 61cef1b894597924b8cc18a98839e56d, type: 3}
+  - {fileID: 21300000, guid: c68aacf9fecacd94fb98e3d72043d048, type: 3}
+  - {fileID: 21300000, guid: 5b16192a6f133ba4f9b33cf0372b80de, type: 3}
+  - {fileID: 21300000, guid: 2c31ceba29b23d84e881a1a2aa4943fe, type: 3}
+  - {fileID: 21300000, guid: 82d759da98b362346af33ec80da7704e, type: 3}
+  - {fileID: 21300000, guid: bcb5caccf8f1d0c42a18e9ffdd93663a, type: 3}
+  - {fileID: 21300000, guid: 441a6fec84a800541bb4cdb5b132af95, type: 3}
+  - {fileID: 21300000, guid: 3af0920dbe2b62f4b8da1ac8b9d4f8d8, type: 3}
+  - {fileID: 21300000, guid: 267e54adee024e14a982d38c8c65628e, type: 3}
+  - {fileID: 21300000, guid: 51fecd8e137682f418b5c8001f45872b, type: 3}
+  - {fileID: 21300000, guid: f148052f3d7f61b478801f78e7bb5680, type: 3}
+  - {fileID: 21300000, guid: 358346bf59523b04f96ddc84449a39fc, type: 3}
+  - {fileID: 21300000, guid: 4dba03cf5c26b404ab57de8333253206, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - box_exclamationmark
+  - box_brickbox1-1
+  - btn_back
+  - box_offbutton
+  - box_clearcastle
+  - box_pipe2
+  - btn_chatting
+  - box_pswitch_use
+  - box_cloud
+  - box_alreadyuse
+  - box_powerbox
+  - box_brickbox1
+  - box_fireball
+  - box_onbutton
+  - box_musicbox
+  - box_brickbox1-2
+  - ui_roommake
+  - box_pipe1
+  - object_chattingbox
+  - box_questionmark
+  - box_savepoint
+  - box_clearpoint
+  - box_pswitch_nouse
+  m_Tag: Block
+  m_IsVariant: 0

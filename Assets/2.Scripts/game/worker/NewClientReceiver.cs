@@ -78,7 +78,6 @@ public class NewClientReceiver : MonoBehaviour
         }
     }
 
-
     private void PacketReview(Packet p)
     {
         Packet packet = p;
@@ -114,7 +113,8 @@ public class NewClientReceiver : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.Log("BB" + e);
+                GameManager.instance.ShowMessage(UnityEngine.Random.Range(0, 2) % 2 == 0 ? "패킷이 잘못전달되었습니다.. 개발자 일안하냐ㅏ!!"
+                : "패킷이 잘못전달되었습니다. 버그 제보는 저희에게 큰 힘이 됩니다 카톡 (010-4187-7834) ", 1.0f, MessageType.Important);
 
                 server.Send(client, new Packet(Packet.Target.SERVER, Packet.Target.ACCESS_REQUESTER, Packet.Type.FAIL), true);
                 server.Kick(client);
@@ -144,7 +144,7 @@ public class NewClientReceiver : MonoBehaviour
     {
         while (true)
         {
-            byte code = (byte) UnityEngine.Random.Range(2, 254);
+            byte code = (byte) UnityEngine.Random.Range(3, 254);
             bool collect = true;
             foreach (ServerClient client in server.Clients.Values)
             {

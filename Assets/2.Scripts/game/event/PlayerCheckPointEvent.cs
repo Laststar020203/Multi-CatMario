@@ -8,11 +8,17 @@ public class PlayerSetCheckPointEvent : Event
     public static readonly List<GameEvent<PlayerSetCheckPointEvent>> listeners = new List<GameEvent<PlayerSetCheckPointEvent>>();
 
     private readonly Vector2 _checkPoint;
-    
-    public Vector2 CheckPoint { get { return _checkPoint; } }
+    private GameObject checkPointObj;
 
-    public PlayerSetCheckPointEvent(Vector2 checkPoint)
+   
+
+    public Vector2 CheckPoint { get { return _checkPoint; } }
+    public GameObject Obj { get { return checkPointObj; } }
+
+
+    public PlayerSetCheckPointEvent(Vector2 checkPoint, GameObject checkPointObj)
     {
-        _checkPoint = checkPoint;
+        this._checkPoint = checkPoint;
+        this.checkPointObj = checkPointObj;
     }
 }

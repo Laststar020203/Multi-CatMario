@@ -16,9 +16,15 @@ public class PacketManager : MonoBehaviour
 
     private Dictionary<byte, IRequester> requesterBuffer;
 
+    private RemotePlayerController rpc;
+
 
     public Queue<Packet> ReceivePacket { get { return receivePacket; } }
-    public Packet[] SendPacket { get { return GetSendPacketes(); } }
+    public Packet[] SendPacket { get {
+            if (sendPackets.Count == 0)
+                return null;
+            else
+                return GetSendPacketes(); } }
 
     private void Awake()
     {
@@ -38,7 +44,6 @@ public class PacketManager : MonoBehaviour
     private Packet[] GetSendPacketes()
     {
         Packet[] ps;
-
         ps = sendPackets.ToArray();
         sendPackets.Clear();
 
@@ -64,19 +69,35 @@ public class PacketManager : MonoBehaviour
 
     public void GetPacket(Packet packet)
     {
+
         this.receivePacket.Enqueue(packet);
+
     }
 
     public void AddPacketDataReceiver(IPacketDataReceiver receiver)
     {
+
+        if (receiver as RemotePlayerController)
+            rpc = (RemotePlayerController)receiver;
         packetReceiver.Add(receiver);
+
+
     }
 
     public void RemovePacketDataReceiver(IPacketDataReceiver reciever)
     {
-        packetReceiver.Remove(reciever);
+        lock (packetReceiver)
+        {
+            packetReceiver.Remove(reciever);
+        }
     }
     
+    public void Clear()
+    {
+        receivePacket.Clear();
+        sendPackets.Clear();
+        requesterBuffer.Clear();
+    }
 
     // Update is called once per frame
     void Update()
@@ -85,6 +106,13 @@ public class PacketManager : MonoBehaviour
         if(receivePacket.Count != 0)
         {
             Packet packet = receivePacket.Dequeue();
+
+            if (packet.TypeCode == Packet.Type.Quit)
+                GameManager.instance.NetEscape();
+            if(packet.TypeCode == Packet.Type.SYNC_PLAYER_POS && rpc != null)
+            {
+                rpc.Receive(packet);
+            }
 
             if(packet.TypeCode == Packet.Type.OK || packet.TypeCode == Packet.Type.FAIL)
             {

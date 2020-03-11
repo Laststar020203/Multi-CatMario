@@ -11,6 +11,8 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
     public static RemotePlayerController instance;
     private LocalPlayer player;
 
+    public Dictionary<byte, RemotePlayer> RemotePlayers { get { return remotePlayers; } }
+
     private void Awake()
     {
         if (instance != null)
@@ -20,7 +22,7 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
         if (PacketManager.instance == null)
         {
             GameObject o = GameObject.Find("net");
-            switch (GameManager.instance.Part)
+            switch (GameManager.instance.NetPart)
             {
                 case SocketPart.Server:
                     o.GetComponentInChildren<Server>().ServerClose();
@@ -36,13 +38,17 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
         PacketManager.instance.AddPacketDataReceiver(this);
 
         InitPlayer();
-        
     }
 
     private void Start()
     {
         player = ClientGameSystem.instance.Player;
         AddListener();
+
+        /*
+        if (GameManager.instance.Part == SocketPart.Server)
+            StartCoroutine(SendUsPos());
+        */
     }
 
     private void InitPlayer()
@@ -61,7 +67,8 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
 
         User user = e.User;
         GameObject newRemotePlayerObj = Instantiate(remotePrefab, Vector2.zero, Quaternion.identity);
-        RemotePlayer remotePlayer = newRemotePlayerObj.GetComponent<RemotePlayer>();
+        RemotePlayer remotePlayer = newRemotePlayerObj.AddComponent<RemotePlayer>();
+
         remotePlayer.Init(user.ID, user.Name, user.CharacteID);
         remotePlayers.Add(user.ID, remotePlayer);
     }
@@ -87,58 +94,51 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
     public bool CheckResponsible(Packet packet)
     {
         byte type = packet.TypeCode;
-        if ((type >= 0x12 && type <= 14) || (GameManager.instance.Part == SocketPart.Client && type == 0x15) || (GameManager.instance.Part == SocketPart.Server && type == 0x11)) return true;
+        if ((type >= 0x12 && type <= 14) || (GameManager.instance.NetPart == SocketPart.Client && type == 0x15) || (GameManager.instance.NetPart == SocketPart.Server && type == 0x11)) return true;
         else return false;
     }
 
-    private Dictionary<byte, Vector2> getAllPos()
-    {
-        Dictionary<byte, Vector2> d = new Dictionary<byte, Vector2>();
-        foreach(byte key in remotePlayers.Keys)
-        {
-            d.Add(key, remotePlayers[key].Pos);
-        }
-        d.Add(GameManager.instance.Me.ID, player.Pos);
 
-        return d;
+    private void RemotePlayerSurrend(SurrendEvent e)
+    {
+        if (remotePlayers.ContainsKey(e.ID))
+        {
+            remotePlayers[e.ID].Stat = PlayerStat.Spectator;
+        }
     }
 
-    private void Update()
+    private void OffRemotePlayerSurrend(GameEndEvent e)
     {
-        if (GameManager.instance.Part == SocketPart.Server)
+        foreach (Player p in remotePlayers.Values)
         {
-            PacketManager.instance.PutPacket(new Packet(Packet.Target.SERVER, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_POS_TOCLIENT, new UnityPacketData(getAllPos())));
-
+            if (p.Stat == PlayerStat.Spectator)
+                p.Stat = PlayerStat.Player;
         }
-
-
     }
 
     public void Receive(Packet packet)
     {
-        if (!remotePlayers.ContainsKey(packet.Sender)) return;
-        switch (packet.TypeCode)
+        try
         {
-            case Packet.Type.SYNC_PLAYER_POS_TOSERVER:
-                RemotePlayer rp = remotePlayers[packet.Sender];
-                rp.SyncPosition((Vector2)new UnityPacketData(packet.Body, packet).OData);
-                break;
-            case Packet.Type.SYNC_PLAYER_DEAD:
-
-                break;
-            case Packet.Type.SYNC_PLAYER_RESPAWN:
-
-                break;
-            case Packet.Type.SYNC_PLAYER_POS_TOCLIENT:
-                Dictionary<byte, Vector2> d = (Dictionary<byte,Vector2>) new UnityPacketData(packet.Body, packet).OData;
-                foreach(byte b in d.Keys)
-                {
-                    if (b == GameManager.instance.Me.ID) continue;
-                    Debug.Log(b + "pos : " + d[b]);
-                    remotePlayers[b].SyncPosition(d[b]);
-
-                }
-                break;
+            if (!remotePlayers.ContainsKey(packet.Sender)) return;
+            RemotePlayer rp = remotePlayers[packet.Sender];
+            switch (packet.TypeCode)
+            {
+                case Packet.Type.SYNC_PLAYER_POS:
+                    rp.SyncPosition((Vector2)new UnityPacketData(packet.Body, packet).OData);
+                    break;
+                case Packet.Type.SYNC_PLAYER_DEAD:
+                    rp.Die();
+                    break;
+                case Packet.Type.SYNC_PLAYER_RESPAWN:
+                    rp.Respawn();
+                    break;          
+            }
+        }catch(System.Exception e)
+        {
+            Debug.Log(e);
+            GameManager.instance.ShowMessage(UnityEngine.Random.Range(0, 2) % 2 == 0 ? "패킷이 잘못전달되었습니다.. 개발자 일안하냐ㅏ!!"
+                : "패킷이 잘못전달되었습니다. 버그 제보는 저희에게 큰 힘이 됩니다 카톡 (010-4187-7834) ", 1.0f, MessageType.Important);
         }
     }
 
@@ -146,12 +146,13 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
     {
         RemoveListener();
         PacketManager.instance.RemovePacketDataReceiver(this);
-
+        StopAllCoroutines();
     }
 
     private void OnDestroy()
     {
         RemoveListener();
+        StopAllCoroutines();
         PacketManager.instance.RemovePacketDataReceiver(this);
 
     }
@@ -160,6 +161,8 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
     {
         EventManager.AddListener<ClientJoinEvent>(RegisterPlayer);
         EventManager.AddListener<ClientQuitEvent>(ExitPlayer);
+        EventManager.AddListener<SurrendEvent>(RemotePlayerSurrend);
+        EventManager.AddListener<GameEndEvent>(OffRemotePlayerSurrend);
     }
 
     public void RemoveListener()
@@ -167,5 +170,7 @@ public class RemotePlayerController : MonoBehaviour, IPacketDataReceiver, IEvent
 
         EventManager.RemoveListener<ClientJoinEvent>(RegisterPlayer);
         EventManager.RemoveListener<ClientQuitEvent>(ExitPlayer);
+        EventManager.RemoveListener<SurrendEvent>(RemotePlayerSurrend);
+        EventManager.RemoveListener<GameEndEvent>(OffRemotePlayerSurrend);
     }
 }

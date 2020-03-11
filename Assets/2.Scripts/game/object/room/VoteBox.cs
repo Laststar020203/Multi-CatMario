@@ -18,12 +18,14 @@ public class VoteBox : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D coll)
     {
+        if (GameManager.instance.GameStat == GameStat.Game) return;
+
         Player player;
         if ((player = coll.gameObject.GetComponent<Player>()) != null)
         {
             //Debug.Log(player.ID);
             audioSource.PlayOneShot(clip);
-            WaitingRoomSceneManager.instance.Vote(player.ID, myIndex);
+            GameRoomSceneManager.instance.Vote(player.ID, myIndex);
         }
     }
 }

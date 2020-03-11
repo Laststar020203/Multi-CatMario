@@ -70,7 +70,7 @@ public class ServerFinder : MonoBehaviour
     private void Update()
     {
 
-        if (EntranceSceneManager.instance.Joining && threads.Count != 0)
+        if (EntranceSceneManager.instance.Joining && threads != null && threads.Count != 0)
             AllThreadStop();
 
         if (succesDgQueue.Count != 0)
@@ -130,7 +130,7 @@ public class ServerFinder : MonoBehaviour
 
                 failDgQueue.Enqueue(fail);
 
-                Debug.Log("It's not Server... : " + ip + " Exception : " + e);
+                
                 if(thread != null)
                 threads.Remove(thread);
                 return;
@@ -162,7 +162,7 @@ public class ServerFinder : MonoBehaviour
                 {
                     if (!serverList.ContainsKey(newIP.ToString()) && !emp_List.Contains(newIP) &&  !newIP.Equals(myIp))
                     {
-                        Debug.Log(newIP + " server Peek Start....");
+
                         emp_List.Add(newIP);
                         Peek(newIP.ToString(), (ip, r) =>
                         {
@@ -187,8 +187,10 @@ public class ServerFinder : MonoBehaviour
 
    private void AllThreadStop()
     {
+        if (threads == null) return;
         foreach (Thread thread in threads)
         {
+            if(thread != null)
             thread.Abort();
         }
     }

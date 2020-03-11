@@ -7,13 +7,15 @@ public class User : PacketData
     //최대 글자수 제안 15글자
     private byte userId;
     private string userName;
+    private string fixedUserName;
     private byte userCharacterCode;
 
     public const byte NON_USER = 0;
 
     public byte ID { get { return userId; } set { userId = value; } }
-    public string Name { get { return userName; } }
-    public byte CharacteID { get { return userCharacterCode; } }
+    public string Name { get { return userName; } set { userName = value; } }
+    public string FixedName { get { return fixedUserName; } }
+    public byte CharacteID { get { return userCharacterCode; } set { userCharacterCode = value; } }
 
     public User(byte userId, string userName, byte userCharacterCode)
     {
@@ -46,7 +48,9 @@ public class User : PacketData
 
         this.pData[0] = userId;
 
+        //byte[] username = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(userName)));
         byte[] username = Encoding.UTF8.GetBytes(userName);
+
 
         if (username.Length > 15)
             username = Encoding.UTF8.GetBytes("IamSucker");
@@ -63,7 +67,9 @@ public class User : PacketData
         this.userId = this.pData[0];
         byte[] userName = new byte[15];
         Buffer.BlockCopy(this.pData, 1, userName, 0, 15);
+
         this.userName = Encoding.UTF8.GetString(userName);
+        //this.fixedUserName = Encoding.UTF8.GetString(Convert.FromBase64String(Encoding.UTF8.GetString(userName)));
         this.userCharacterCode = this.pData[16];
 
 

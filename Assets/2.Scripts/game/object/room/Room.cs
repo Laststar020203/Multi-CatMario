@@ -35,15 +35,13 @@ public class Room : PacketData
         if (!(obj is Room)) return false;
         Room room = (Room) obj;
 
-        Debug.Log("FF");
+
 
         if (this.title != room.Title || this.maxUser != room.MaxUser || this.HeadCount != room.HeadCount || this.map != room.Map) return false;
 
-        Debug.Log("SF");
 
         foreach (byte b in room.Personnel.Keys)
         {
-            Debug.Log("JE" + b);
             if (!this.personnel.ContainsKey(b))
                 return false;
         }

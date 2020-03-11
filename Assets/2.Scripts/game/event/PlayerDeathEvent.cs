@@ -8,8 +8,10 @@ public class PlayerDeathEvent : Event
 
     public Vector2 DeathPosition { get { return _deathPosition; } }
 
+
     public PlayerDeathEvent(Vector2 deathPosition)
     {
-        _deathPosition = deathPosition;
+
+        this._deathPosition = deathPosition;
     }
 }

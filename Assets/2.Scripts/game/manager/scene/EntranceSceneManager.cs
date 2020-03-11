@@ -80,7 +80,7 @@ public class EntranceSceneManager : MonoBehaviour, IEventListener
         if (server.ServerStart(5252))
         {
             Destroy(GameObject.Find("client"));
-            GameManager.instance.Part = SocketPart.Server;
+            GameManager.instance.NetPart = SocketPart.Server;
 
             GameManager.instance.Me.ID = Packet.Target.SERVER;
 
@@ -99,6 +99,7 @@ public class EntranceSceneManager : MonoBehaviour, IEventListener
 
     }
     
+
     public void AddRoomBox(string ip, Room room)
     {
         string title = room.Title;
@@ -168,11 +169,11 @@ public class EntranceSceneManager : MonoBehaviour, IEventListener
         ServerJoiner serverJoiner = emp_serverJoiner.AddComponent<ServerJoiner>();
         emp_serverJoiner.transform.SetParent(GameObject.Find("net").transform);
 
-        
+        GameManager.instance.ShowMessage(ip + " 접속 시도!", 1.0f, MessageType.Commmon);
         
         serverJoiner.Join(ip, 5f, () => {
 
-            Debug.Log("Server connect Fali");
+            GameManager.instance.ShowMessage(ip + " 로 시도했으나 실패했습니다", 1.0f, MessageType.Important);
             connectTrying = false;
         });
     }
@@ -180,18 +181,14 @@ public class EntranceSceneManager : MonoBehaviour, IEventListener
     public void CreateRoomManager(Room room)
     {
         GameObject roomManagerObj = new GameObject("roomManager");
+        roomManagerObj.tag = "PLAYMANAGER";
         RoomManager roomManager = roomManagerObj.AddComponent<RoomManager>();
         roomManager.RoomInfo = room;
         DontDestroyOnLoad(roomManagerObj);
 
     }
 
-    public void LimitValue(Text text)
-    {
-        int value = Convert.ToInt32(text);
-        if (value > 4)
-            text.text = "4";
-    }
+
 
     private void Escape(EscapeEvent e)
     {

@@ -1,25 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class Exam : MonoBehaviour
 {
 
-    public float speed = 1f;
-    Transform tr;
-    Vector2 direction = Vector2.right;
-
-    // Start is called before the first frame update
-    void Start()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        tr = GetComponent<Transform>();
-    }
+        if (collision.collider.CompareTag("PLAYER"))
+        {
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (tr.position.x < -7 || tr.position.x > 7)
-            direction = -direction;
-        tr.Translate(direction * speed * Time.deltaTime);
+            if (ClientGameSystem.instance.end)
+            {
+                SceneManager.UnloadSceneAsync(3);
+                SceneManager.UnloadSceneAsync(4);
+
+                ClientGameSystem.instance.end = false;
+            }
+        }
+            
+
     }
 }

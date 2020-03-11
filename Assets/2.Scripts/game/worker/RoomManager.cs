@@ -25,6 +25,7 @@ public class RoomManager : MonoBehaviour, IPacketDataReceiver, IEventListener
         instance = this;
         DontDestroyOnLoad(instance);
 
+        if(GameManager.instance.NetPart == SocketPart.Client)
         PacketManager.instance.AddPacketDataReceiver(this);
         
     }
@@ -37,7 +38,10 @@ public class RoomManager : MonoBehaviour, IPacketDataReceiver, IEventListener
     private void UpdateMap(MapChangeEvent e)
     {
         this.room.Map = (byte)e.MapCode;
-        if (GameManager.instance.Part == SocketPart.Server)
+
+        GameManager.instance.ShowMessage("1-" + (this.room.Map + 1) + " 로 맵이 변경되었습니다! (현재 1-1만 구현됬어요.. 그저 관상용.. )", 1.0f, MessageType.Commmon);
+
+        if (GameManager.instance.NetPart == SocketPart.Server)
             PacketManager.instance.PutPacket(new Packet(Packet.Target.SERVER, Packet.Target.ALL, Packet.Type.SYNC_ROOM_MAP, new byte[1] { this.room.Map }));
 
     }
@@ -46,20 +50,27 @@ public class RoomManager : MonoBehaviour, IPacketDataReceiver, IEventListener
     {
         try
         {
-            if (packet.TypeCode == Packet.Type.SYNC_ROOM_MAP)
+            try
             {
-                EventManager.CallEvent(new MapChangeEvent(packet.Body[0]));
+                if (packet.TypeCode == Packet.Type.SYNC_ROOM_MAP)
+                {
+                    EventManager.CallEvent(new MapChangeEvent(packet.Body[0]));
+                }
             }
-        }
-        catch (System.Exception e)
-        {
+            catch (System.Exception e)
+            {
 
+            }
+        }catch(System.Exception e)
+        {
+            GameManager.instance.ShowMessage(UnityEngine.Random.Range(0, 2) % 2 == 0 ? "패킷이 잘못전달되었습니다.. 개발자 일안하냐ㅏ!!"
+                : "패킷이 잘못전달되었습니다. 버그 제보는 저희에게 큰 힘이 됩니다 카톡 (010-4187-7834) ", 1.0f, MessageType.Important);
         }
     }
 
     public bool CheckResponsible(Packet packet)
     {
-        if (packet.TypeCode == Packet.Type.SYNC_ROOM_MAP && GameManager.instance.Part == SocketPart.Client) return true;
+        if (packet.TypeCode == Packet.Type.SYNC_ROOM_MAP && GameManager.instance.NetPart == SocketPart.Client) return true;
         else return false;
     }
 
@@ -75,13 +86,15 @@ public class RoomManager : MonoBehaviour, IPacketDataReceiver, IEventListener
 
     private void OnDestroy()
     {
-        PacketManager.instance.RemovePacketDataReceiver(this);
+        if (GameManager.instance.NetPart == SocketPart.Client)
+            PacketManager.instance.RemovePacketDataReceiver(this);
         RemoveListener();
     }
 
     private void OnDisable()
     {
-        PacketManager.instance.RemovePacketDataReceiver(this);
+        if (GameManager.instance.NetPart == SocketPart.Client)
+            PacketManager.instance.RemovePacketDataReceiver(this);
         RemoveListener();
     }
 }

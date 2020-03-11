@@ -6,6 +6,7 @@ public class TextColor
 {
     
 
+    /*
     public static string Wear(byte characterCode, string msg)
     {
         string color = null;
@@ -28,6 +29,7 @@ public class TextColor
 
         return msg;
     }
+    */
 
     private static void setColorText(string colorCode, ref string text)
     {

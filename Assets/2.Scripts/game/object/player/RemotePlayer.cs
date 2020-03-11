@@ -17,10 +17,24 @@ public class RemotePlayer : Player
         sr = GetComponentInChildren<SpriteRenderer>();
 
         modelTr = tr.GetChild(0).GetComponent<Transform>();
+        firePos = modelTr.GetChild(0);
+
     }
 
- 
-
+    protected override void gv_UpdateStat(PlayerStat stat)
+    {
+        switch (stat)
+        {
+            case PlayerStat.Player:
+                sr.enabled = true;
+                sr.color = myColor;
+                break;
+            case PlayerStat.Spectator:
+                sr.enabled = false;
+                break;
+        }
+    }
+    public float av_speed = 2.0f;
     public void SyncPosition(Vector2 pos)
     {
 
@@ -39,7 +53,7 @@ public class RemotePlayer : Player
         }
 
         tr.position = pos;
-    }
+       }
 
     protected override void LeftMove()
     {
@@ -61,25 +75,10 @@ public class RemotePlayer : Player
 
     public override void Respawn()
     {
-        isDying = false;
         animator.SetBool(IsDead, false);
+        modelTr.localPosition = Vector2.zero;
+        isDying = false;
     }
 
-    private void OnCollisionEnter2D(Collision2D coll)
-    {
-        if (coll.collider.CompareTag("GROUND"))
-        {
-            isJump = false;
-            animator.SetBool(IsJumping, false);
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D coll)
-    {
-        if (coll.collider.CompareTag("GROUND"))
-        {
-            isJump = true;
-            animator.SetBool(IsJumping, true);
-        }
-    }
+   
 }

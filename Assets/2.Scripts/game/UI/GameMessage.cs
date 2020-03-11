@@ -23,14 +23,25 @@ public class GameMessage : MonoBehaviour
         this.text.text = text;
         this.time = time;
         this.text.enabled = false;
+        /*
+        if(GameObject.FindGameObjectWithTag("CANVAS") != null)
         tr.parent = GameObject.FindGameObjectWithTag("CANVAS").transform;
+        */
+
+        GameObject g = GameObject.FindGameObjectWithTag("CANVAS");
+        if (g != null)
+            tr.SetParent(g.transform);
+
+
         tr.localPosition = Vector3.zero;
 
     }
 
     public void Show()
     {
+        if(this.text != null)
         this.text.enabled = true;
+        if(animator != null)
         animator.SetBool("Start", true);
         StartCoroutine(Wait(time));
 
@@ -48,5 +59,14 @@ public class GameMessage : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    private void OnDestroy()
+    {
+        Close();
+    }
+
+    private void OnApplicationQuit()
+    {
+        Close();
+    }
 
 }

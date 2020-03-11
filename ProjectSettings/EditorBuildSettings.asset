@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/1.Scenes/WaitingRoomScene.unity
     guid: d3b1c565ef89ab442805758ed358295b
   - enabled: 1
-    path: Assets/1.Scenes/EMp.unity
-    guid: 1ffd975828557604e9279154fc130cdc
+    path: Assets/1.Scenes/1-1Copy.unity
+    guid: 90536bba3cb54544da73603a1df81b01
+  - enabled: 1
+    path: Assets/1.Scenes/EndGame.unity
+    guid: 036768a37e649ca48b7053df3107b3a1
   m_configObjects: {}

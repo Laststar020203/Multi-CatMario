@@ -63,7 +63,7 @@ public class Move : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.tag == "Wall" && itTurns)
+        if (collision.gameObject.tag == "Wall" || collision.gameObject.tag == "Monster" && itTurns )
         {
 
             if (hor == 1)

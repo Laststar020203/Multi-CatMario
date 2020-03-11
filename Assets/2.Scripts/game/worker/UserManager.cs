@@ -45,6 +45,10 @@ public class UserManager : MonoBehaviour, IPacketDataReceiver, IEventListener
         {
             User user = e.User;
             users.Add(user.ID, user);
+            //string msg = user.Name + " 님이 입장하였습니다!";
+            GameManager.instance.ShowMessage(user.Name, 1.0f, MessageType.Commmon);
+            GameManager.instance.ShowMessage("입장", 1.0f, MessageType.Commmon);
+
         }
     }
 
@@ -52,31 +56,44 @@ public class UserManager : MonoBehaviour, IPacketDataReceiver, IEventListener
     {
         lock (users)
         {
+            
             users.Remove(e.User.ID);
+            GameManager.instance.ShowMessage(e.User.Name, 1.0f, MessageType.Commmon);
+            GameManager.instance.ShowMessage("퇴장", 1.0f, MessageType.Commmon);
         }
     }
  
     public void Receive(Packet packet)
     {
-        User newUser;
         try
         {
-            newUser = new User(packet.Body);
-        }
-        catch (Exception e)
+            User newUser;
+            try
+            {
+                newUser = new User(packet.Body);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+                PacketManager.instance.PutPacket(new Packet(Client.UserCode, Packet.Target.SERVER, Packet.Type.REQUEST_RE_SEND));
+                return;
+            }
+            switch (packet.TypeCode)
+            {
+                case Packet.Type.REGISTER_CLIENT:
+                    EventManager.CallEvent(new ClientJoinEvent(null, newUser));
+                    break;
+                case Packet.Type.EXIT_CLIENT:
+                    EventManager.CallEvent(new ClientQuitEvent(null, newUser));
+                    break;
+            }
+
+        }catch(Exception e)
         {
-            Debug.Log(e.Message);
-            PacketManager.instance.PutPacket(new Packet(Client.UserCode, Packet.Target.SERVER, Packet.Type.REQUEST_RE_SEND));
-            return;
-        }
-        switch (packet.TypeCode)
-        {
-            case Packet.Type.REGISTER_CLIENT:
-                EventManager.CallEvent(new ClientJoinEvent(null, newUser));
-                break;
-            case Packet.Type.EXIT_CLIENT:
-                EventManager.CallEvent(new ClientQuitEvent(null, newUser));
-                break;
+            GameManager.instance.ShowMessage(UnityEngine.Random.Range(0, 2) % 2 == 0 ? "패킷이 잘못전달되었습니다.. 개발자 일안하냐ㅏ!! "
+                : "패킷이 잘못전달되었습니다. 버그 제보는 저희에게 큰 힘이 됩니다 카톡 (010-4187-7834) ", 1.0f, MessageType.Important);
+
+            GameManager.instance.NetEscape();
         }
     }
 

@@ -20,6 +20,7 @@ public class PlayerDeadAnimationEnd : StateMachineBehaviour
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         EventManager.CallEvent(new PlayerDeathEvent(ClientGameSystem.instance.Player.Pos));
+
     }
 
     // OnStateMove is called right after Animator.OnAnimatorMove()

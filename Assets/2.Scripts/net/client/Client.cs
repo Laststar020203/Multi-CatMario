@@ -73,7 +73,7 @@ public class Client : MonoBehaviour
         if(isConnected && socket != null && !socket.Connected)
         {
             CloseSocket();
-            GameManager.instance.NetExit();
+            GameManager.instance.NetEscape();
         }
     }
 
@@ -83,14 +83,17 @@ public class Client : MonoBehaviour
         {
             try
             {
-                Packet[] ps = PacketManager.instance.SendPacket;
+                Packet[] ps;
+                while ((ps = PacketManager.instance.SendPacket) == null) Thread.Yield();
+
+                int count = 0;
                 foreach (Packet p in ps)
                 {
                     Send(p, false);
+                    if (++count % 20 == 0) Thread.Sleep(sendDelayM);
                 }
                 ns.Flush();
 
-                Thread.Sleep(sendDelayM);
             }catch(System.Exception e)
             {
 

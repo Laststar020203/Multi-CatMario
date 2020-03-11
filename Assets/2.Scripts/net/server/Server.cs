@@ -46,7 +46,7 @@ public class Server : MonoBehaviour, IEventListener
             server.Start();
             StartListening();
             serverStarted = true;
-            Debug.Log("Server has been started on port " + port.ToString());
+            
 
 
             sendThread = new Thread(() => Delivery());
@@ -54,9 +54,9 @@ public class Server : MonoBehaviour, IEventListener
 
             return true;
         }
-        catch(Exception e)
+        catch
         {
-            Debug.Log("Socket error: " + e.Message);
+            GameManager.instance.ShowMessage("소켓서버를 여는데 실패하였습니다..", 1.0f, MessageType.Important);
 
 
             return false;
@@ -76,9 +76,7 @@ public class Server : MonoBehaviour, IEventListener
 
         TcpClient empclient = listener.EndAcceptTcpClient(ar);
 
-        Debug.Log("ENter New CLient ");
-
-        if (empclient == null) Debug.Log("Cleint empty"); 
+        if (GameManager.instance.GameStat == GameStat.Game) return;
 
         EventManager.CallEvent(new ReceiveNewClientEvent(empclient));
         
@@ -118,29 +116,43 @@ public class Server : MonoBehaviour, IEventListener
 
     private void ClientInComingPacket(ServerClient client)
     {
-   
 
-        while (IsConnected(client.Tcp))
+        try
         {
-            if (client.IsDataAvailable())
+            while (IsConnected(client.Tcp))
             {
-                Stream e = client.getStream();
-                Packet packet;
-                //비동기? asyncRead
-                PacketParser.Pasing(e, out packet);
-                if (packet != null)
+                if (client.IsDataAvailable())
                 {
-                    if (packet.Receiver != Packet.Target.SERVER)
-                        PacketManager.instance.PutPacket(packet);
-                    else
+                    Stream e = client.getStream();
+                    Packet packet;
+                    //비동기? asyncRead
+                    PacketParser.Pasing(e, out packet);
+                    if (packet != null)
                     {
-                        if(packet.Receiver == Packet.Target.ALL)
-                            PacketManager.instance.PutPacket(packet);
-                        PacketManager.instance.GetPacket(packet);
+
+                        switch (packet.Receiver)
+                        {
+                            case Packet.Target.SERVER:
+                                PacketManager.instance.GetPacket(packet);
+                                break;
+                            case Packet.Target.ALL:
+                                PacketManager.instance.PutPacket(packet);
+                                PacketManager.instance.GetPacket(packet);
+                                break;
+                            default:
+                                PacketManager.instance.PutPacket(packet);
+                                break;
+                        }
+
+
                     }
                 }
-            }
 
+            }
+        }
+        catch
+        {
+           
         }
 
         EventManager.CallEvent(new ClientQuitEvent(client, UserManager.instance.GetUser(client)));
@@ -186,17 +198,23 @@ public class Server : MonoBehaviour, IEventListener
         while (serverStarted) {
             try
             {
-                Packet[] packets = PacketManager.instance.SendPacket;
+                Packet[] packets;
 
+                while ((packets = PacketManager.instance.SendPacket) == null) Thread.Yield();
+
+                int count = 0;
                 foreach (Packet p in packets)
                 {
                     if (p.Receiver == Packet.Target.ALL)
-                        BroadCast(p);
+                        BroadCast(p, p.Sender);
                     else
                     {
                         if (clients.ContainsKey(p.Receiver))
                             Send(clients[p.Receiver], p, false);
                     }
+
+                    if (++count % 20 == 0)
+                        Thread.Sleep(sendDelayM);
                 }
 
                 foreach (ServerClient c in clients.Values)
@@ -204,10 +222,9 @@ public class Server : MonoBehaviour, IEventListener
                     c.getStream().Flush();
                 }
 
-                Thread.Sleep(sendDelayM);
 
             }catch(Exception e){
-                Console.WriteLine(e);
+
             }
         }
     }
@@ -230,6 +247,15 @@ public class Server : MonoBehaviour, IEventListener
     {
         foreach(ServerClient client in clients.Values)
         {
+            Send(client, packet, false);
+        }
+    }
+
+    public void BroadCast(Packet packet, byte Id)
+    {
+        foreach (ServerClient client in clients.Values)
+        {
+            if (client.ID == Id) continue;
             Send(client, packet, false);
         }
     }
@@ -270,8 +296,12 @@ public class Server : MonoBehaviour, IEventListener
 
     public void ServerClose()
     {
+
+        BroadCast(new Packet(Packet.Target.SERVER, Packet.Target.ALL, Packet.Type.Quit));
+
         serverStarted = false;
         StopAllCoroutines();
+        if(sendThread != null)
         sendThread.Abort();
 
         foreach(ServerClient client in clients.Values)
@@ -279,6 +309,7 @@ public class Server : MonoBehaviour, IEventListener
             Kick(client);
         }
         server.Stop();
+        GameManager.instance.NetEscape();
     }
 
     private void OnApplicationQuit()

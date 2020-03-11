@@ -33,7 +33,6 @@ public class ServerJoiner : MonoBehaviour, IPacketDataReceiver, IRequester
             this.waitSecond = waitSecond;
 
 
-            Debug.Log("Connect Succes!");
 
             Destroy(this.gameObject, waitSecond);
 
@@ -41,7 +40,6 @@ public class ServerJoiner : MonoBehaviour, IPacketDataReceiver, IRequester
         }
         catch(Exception e)
         {
-            Debug.Log("Error Socket : " + e.Message);
             Destroy(this.gameObject);
         }       
     }
@@ -56,24 +54,31 @@ public class ServerJoiner : MonoBehaviour, IPacketDataReceiver, IRequester
 
     public void Receive(Packet packet)
     {
-
-        switch (packet.TypeCode)
+        try
         {
-            case Packet.Type.HELLO:
-                //room 임시 저장
-                this.room = new Room(packet.Body);
-                break;
-            case Packet.Type.FAIL:
-                Destroy(this.gameObject);
-                break;
+            switch (packet.TypeCode)
+            {
+                case Packet.Type.HELLO:
+                    //room 임시 저장
+                    this.room = new Room(packet.Body);
+                    break;
+                case Packet.Type.FAIL:
+                    Destroy(this.gameObject);
+                    break;
 
-            case Packet.Type.OK:
+                case Packet.Type.OK:
 
-                byte myId = packet.Body[1];
-                GameManager.instance.Me.ID = myId;
-                Entrance();
+                    byte myId = packet.Body[1];
+                    GameManager.instance.Me.ID = myId;
+                    Entrance();
 
-                break;
+                    break;
+            }
+
+        }catch(Exception e)
+        {
+            GameManager.instance.ShowMessage(UnityEngine.Random.Range(0, 2) % 2 == 0 ? "패킷이 잘못전달되었습니다.. 개발자 일안하냐ㅏ!!"
+                : "패킷이 잘못전달되었습니다. 버그 제보는 저희에게 큰 힘이 됩니다 카톡 (010-4187-7834) ", 1.0f, MessageType.Important);
         }
 
 
@@ -85,7 +90,6 @@ public class ServerJoiner : MonoBehaviour, IPacketDataReceiver, IRequester
         LoadSceneManager.instance.NextSceneLoad();
         succues = true;
 
-        Debug.Log(room.Title + "  " + room.HeadCount + " " + room.MaxUser);
         Destroy(this.gameObject);
     }
 

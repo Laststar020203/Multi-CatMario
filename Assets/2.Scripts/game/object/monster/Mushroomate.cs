@@ -24,8 +24,8 @@ public class Mushroomate : MonoBehaviour
     {
         if(collision.gameObject.tag == "PLAYER")
         {
-            collision.transform.localScale = new Vector2(2, 2);
-            p.breakE = true;
+          //  collision.transform.localScale = new Vector2(2, 2);
+          //  p.breakE = true;
            // p.isJumping = true;
             Destroy(gameObject);
             

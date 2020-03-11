@@ -10,13 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 3513222262813824576}
   - component: {fileID: 3513222262813824583}
-  - component: {fileID: 3513222262813824582}
   - component: {fileID: 3513222262813824581}
   - component: {fileID: 3513222262813824580}
   - component: {fileID: 3513222262813824587}
+  - component: {fileID: -5303611527393439948}
   m_Layer: 0
   m_Name: Mush
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -84,18 +84,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &3513222262813824582
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3513222262813824586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45787f95b832e65499c09f17baa604c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &3513222262813824581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,6 +100,8 @@ MonoBehaviour:
   hor: 1
   vir: 0
   itTurns: 1
+  itBeam: 0
+  beamSpeed: 0
 --- !u!50 &3513222262813824580
 Rigidbody2D:
   serializedVersion: 4
@@ -146,7 +136,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0030149817, y: -0.0040197372}
+  m_Offset: {x: -0.0030149817, y: -0.04690075}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -157,5 +147,21 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.17496836, y: 0.30561733}
+  m_Size: {x: 0.17496836, y: 0.21985531}
   m_EdgeRadius: 0
+--- !u!114 &-5303611527393439948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3513222262813824586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70eb796246563ed47aeb49ebe056aec4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  killTrig: 0
+  killColi: 1
+  jumper: 0
+  split: 0

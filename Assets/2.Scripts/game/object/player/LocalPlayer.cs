@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class LocalPlayer : Player, IStateController
 {
     public float speed;
@@ -27,6 +28,11 @@ public class LocalPlayer : Player, IStateController
     public AudioClip jumpSound;
     public AudioClip deathSound;
 
+    public GameObject fireBall;
+    public GameObject checkPoint;
+
+    private Transform checkPos;
+    int count = 0;
     public StateMachine controller => _controller;
 
     public override bool IsDying => _controller.CurrentState is Dead;
@@ -37,74 +43,181 @@ public class LocalPlayer : Player, IStateController
         animator = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponentInChildren<SpriteRenderer>();
+
         audioSource = GetComponent<AudioSource>();
 
         _controller = new Controller(gameObject);
 
         modelTr = tr.GetChild(0).GetComponent<Transform>();
+        firePos = modelTr.GetChild(0);
+        checkPos = modelTr.GetChild(1);
 
-        canJump = true;
+        canJump = false;
         canAttack = true;
         canCheckPoint = true;
+
+        myColor = sr.color;
+
+        ws = new WaitForSeconds(sendDelay);
+    }
+
+    protected override void gv_UpdateStat(PlayerStat stat)
+    {
+        switch (stat)
+        {
+            case PlayerStat.Player:
+                sr.color = myColor;
+                break;
+            case PlayerStat.Spectator:
+                sr.color = new Color(0, 0, 0);
+                break;
+        }
+    }
+
+    private void Start()
+    {
+            StartCoroutine(SendMyPos());
+
+
     }
 
     public void LeftButtonDown(ButtonEvent eventData)
     {
-        if (eventData.Phase == ButtonEvent.EXIT || stunt)
+        switch (stat)
         {
-            animator.SetBool(IsWalking, false);
-            return;
+            case PlayerStat.Player:
+                if (eventData.Phase == ButtonEvent.EXIT || stunt)
+                {
+                    animator.SetBool(IsWalking, false);
+                    return;
+                }
+                LeftMove();
+                break;
+            case PlayerStat.Spectator:
+                LeftMove();
+                break;
+
         }
-        LeftMove();
+
     }
 
     public void RightButtonDown(ButtonEvent eventData)
     {
-        if (eventData.Phase == ButtonEvent.EXIT || stunt)
+        switch (stat)
         {
-            animator.SetBool(IsWalking, false);
-            return;
+            case PlayerStat.Player:
+                if (eventData.Phase == ButtonEvent.EXIT || stunt)
+                {
+                    animator.SetBool(IsWalking, false);
+                    return;
+                }
+                RightMove();
+                break;
+            case PlayerStat.Spectator:
+                RightMove();
+                break;
+
         }
-        RightMove();
     }
 
-    bool firstClick = false;
+
 
     public void JumpButtonDown(ButtonEvent eventData)
     {
-        if (stunt) return;
 
-        switch (eventData.Phase)
+        switch (stat)
         {
-            case ButtonEvent.Enter:
-                if(canJump)
-                audioSource.PlayOneShot(jumpSound);
+            case PlayerStat.Player:
+                if (stunt) return;
+
+                switch (eventData.Phase)
+                {
+                    case ButtonEvent.Enter:
+                        if (canJump)
+                            audioSource.PlayOneShot(jumpSound, GameManager.instance.Setting.SoundValue);
+                        break;
+                    case ButtonEvent.EXIT:
+                        canJump = false;
+                        break;
+                    case ButtonEvent.HOLD:
+                        if (canJump && eventData.HoldingTime < jumpHoilderMaxTime)
+                            Jump();
+                        break;
+                }
                 break;
-            case ButtonEvent.EXIT:
-                canJump = false;
+            case PlayerStat.Spectator:
+                Jump();
                 break;
-            case ButtonEvent.HOLD:
-                if (canJump && eventData.HoldingTime < jumpHoilderMaxTime)
-                    Jump();
+            default:
                 break;
         }
     }
 
+    int s = 0;
     public void AttackButton(Image g)
     {
+        if(stat == PlayerStat.Spectator)
+        {
+            if (count < 20 && count % 2 == 0)
+            {
+                GameManager.instance.ShowMessage("당신은 관전자입니다", 1.0f, MessageType.Important);
+            }else if(count < 70 && count % 3 == 0)
+            {
+                GameManager.instance.ShowMessage("아니", 1.0f, MessageType.Important);
+                GameManager.instance.ShowMessage("님", 1.0f, MessageType.Commmon);
+                GameManager.instance.ShowMessage("관전자에요", 1.0f, MessageType.Commmon);
+            }else if(count >  71 && count % 5 == 0)
+            {
+                GameManager.instance.ShowMessage("...", 1.0f, MessageType.Important);
+                GameManager.instance.ShowMessage("싸이코세요?", 1.0f, MessageType.Commmon);
+                GameManager.instance.ShowMessage("누구 죽이고 싶어 안달나셨는지...", 1.0f, MessageType.Commmon);
+            }
+            count++;
+
+            return;
+        }
+
         if (!canAttack) return;
         g.color = new Color(g.color.r, g.color.g, g.color.b, 18);
         canAttack = false;
-        Debug.Log("sd");
+        //Right 1, left 0
+        PacketManager.instance.PutPacket(new Packet(ID, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_ATTACK, new byte[2] { id, (byte)(isRightLook ? 1 : 0) }));
+        EventManager.CallEvent(new PlayerAttackEvent(id));
+        Shot();
         StartCoroutine(WaitCool(g, 0, attackCoolTime));
+        if(s == 7)
+        GameManager.instance.ShowMessage("월래 그러라고 만든 게임입니다", 1.0f, MessageType.Commmon);
+        s++;
     }
 
+    private void Shot()
+    {
+        GameObject.Instantiate(fireBall, firePos.position, isRightLook ? Quaternion.Euler(0,0,0) : Quaternion.Euler(0, 180,0));
+    }
+    int aCount;
     public void CheckPointButton(Image g)
     {
+        if (stat == PlayerStat.Spectator)
+        {
+            if (aCount < 10 && aCount % 2 == 0)
+            {
+                GameManager.instance.ShowMessage("님은 관전자에요", 1.0f, MessageType.Important);
+            }else if(aCount < 30 && aCount % 2 == 0)
+            {
+                GameManager.instance.ShowMessage("체크 포인트가 필요 있나? 관전자인데..", 1.0f, MessageType.Important);
+            }else if(aCount > 31)
+            {
+                GameManager.instance.ShowMessage("손가락 안아파요?", 1.0f, MessageType.Important);
+            }
+            aCount++;
+
+            return;
+        }
         if (!canCheckPoint || !inGround) return;
         g.color = new Color(g.color.r, g.color.g, g.color.b, 18);
         canCheckPoint = false;
-        EventManager.CallEvent(new PlayerSetCheckPointEvent(tr.position));
+        GameObject obj =  Instantiate(checkPoint, checkPos.position, Quaternion.identity);
+        EventManager.CallEvent(new PlayerSetCheckPointEvent(tr.position, obj));
         StartCoroutine(WaitCool(g, 1, checkCoolTime));
 
     }
@@ -119,10 +232,6 @@ public class LocalPlayer : Player, IStateController
         g.color = new Color(g.color.r, g.color.g, g.color.b, 255);
     }
 
-    protected override void setSpawnPoint()
-    {
-        EventManager.CallEvent(new PlayerSetCheckPointEvent(tr.position));
-    }
 
     protected override void LeftMove()
     {
@@ -148,15 +257,28 @@ public class LocalPlayer : Player, IStateController
 
     public override void Die()
     {
+        if (stat == PlayerStat.Spectator)
+        {
+            return;
+        }
+
         _controller.ChangeState<Dead>();
-        EventManager.CallEvent(new PlayerDeathEvent(tr.position));
+        rb.velocity = Vector2.zero;
+        //EventManager.CallEvent(new PlayerDeathEvent(tr.position));;
     }
 
     public override void Respawn()
     {
+        if (stat == PlayerStat.Spectator)
+        {
+            return;
+        }
+
         _controller.ChangeState<Idle>();
+        tr.GetChild(0).localPosition = Vector3.zero;
         tr.position = ClientGameSystem.instance.SpawnPoint;
         EventManager.CallEvent(new PlayerRespawnEvent());
+        PacketManager.instance.PutPacket(new Packet(GameManager.instance.Me.ID, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_RESPAWN));
     }
 
     public void Teleport(Vector2 pos)
@@ -167,7 +289,7 @@ public class LocalPlayer : Player, IStateController
     private void OnCollisionStay2D(Collision2D coll)
     {
 
-        if (coll.collider.CompareTag("GROUND"))
+        if (coll.collider.CompareTag("GROUND")||(coll.collider.CompareTag("Wall")))
         {
             canJump = true;
             inGround = true;
@@ -179,21 +301,30 @@ public class LocalPlayer : Player, IStateController
 
     private void OnCollisionExit2D(Collision2D coll)
     {
-        if (coll.collider.CompareTag("GROUND"))
+        if (coll.collider.CompareTag("GROUND") || (coll.collider.CompareTag("Wall")))
         {
             inGround = false;
         }
     }
 
-    private void Update()
-    {
+  
+    public float sendDelay = 0.01f;
+    private WaitForSeconds ws;
+    private Vector2 beforPosition;
 
-        if (GameManager.instance == null) return;
-        if (rb.velocity != Vector2.zero && GameManager.instance.Part == SocketPart.Client && PacketManager.instance != null && !(controller.CurrentState is Dead))
+    private IEnumerator SendMyPos()
+    {
+        while (true)
         {
-            PacketManager.instance.PutPacket(new Packet(GameManager.instance.Me.ID, Packet.Target.SERVER, Packet.Type.SYNC_PLAYER_POS_TOSERVER, new UnityPacketData((Vector2)tr.position)));
-            Debug.Log("Send");
+            while (stat == PlayerStat.Spectator || (beforPosition != null && beforPosition == (Vector2)tr.position) || controller.CurrentState is Dead) yield return null;
+
+            PacketManager.instance.PutPacket(new Packet(GameManager.instance.Me.ID, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_POS, new UnityPacketData((Vector2)tr.position)));
+
+            beforPosition = tr.position;
+
+            yield return ws;
         }
+
     }
 
     #region State Machine
@@ -213,7 +344,7 @@ public class LocalPlayer : Player, IStateController
     {
         public override void Enter()
         {
-
+   
 
         }
 
@@ -241,16 +372,16 @@ public class LocalPlayer : Player, IStateController
         public override void Enter()
         {
             owner.stunt = true;
-            owner.animator.SetBool(owner.IsDead, true);
-            owner.audioSource.PlayOneShot(owner.deathSound);
-
+            owner.animator.SetTrigger(owner.IsDead);
+            owner.audioSource.PlayOneShot(owner.deathSound, GameManager.instance.Setting.SoundValue);
+            PacketManager.instance.PutPacket(new Packet(GameManager.instance.Me.ID, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_DEAD));
         }
 
         public override void Exit()
         {
             owner.stunt = false;
-            owner.animator.SetBool(owner.IsDead, false);
-            PacketManager.instance.PutPacket(new Packet(GameManager.instance.Me.ID, Packet.Target.ALL, Packet.Type.SYNC_PLAYER_RESPAWN));
+            //owner.animator.SetBool(owner.IsDead, false);
+            
         }
     }
 
@@ -269,5 +400,17 @@ public class LocalPlayer : Player, IStateController
     }
 
     #endregion
+
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
 
 }

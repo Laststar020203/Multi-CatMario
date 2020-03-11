@@ -65,7 +65,10 @@ SpriteAtlas:
     - {fileID: 2800000, guid: 84b1cf836e1fd7d4bbd84a2875c4c920, type: 3}
     - {fileID: 2800000, guid: 358346bf59523b04f96ddc84449a39fc, type: 3}
     - {fileID: 2800000, guid: 267e54adee024e14a982d38c8c65628e, type: 3}
-    totalSpriteSurfaceArea: 2151424
+    - {fileID: 2800000, guid: d64d6f3585ec337478a3d97ff7fe1c96, type: 3}
+    - {fileID: 2800000, guid: 99328807839493945b124120bfbd4843, type: 3}
+    - {fileID: 2800000, guid: 2239d09946fd96140aef3bb57347f201, type: 3}
+    totalSpriteSurfaceArea: 2154496
     bindAsDefault: 1
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
@@ -74,12 +77,15 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 84aa38b2e9fe4b54aa471d3007705cc1, type: 3}
   - {fileID: 21300000, guid: c13019c20773835469dd7e419607c5a0, type: 3}
   - {fileID: 21300000, guid: 84b1cf836e1fd7d4bbd84a2875c4c920, type: 3}
+  - {fileID: 21300000, guid: d64d6f3585ec337478a3d97ff7fe1c96, type: 3}
   - {fileID: 21300000, guid: fa210d8577e02ec4a94c27592b64957e, type: 3}
   - {fileID: 21300000, guid: 6b4b2616e3a858948a597403522c4300, type: 3}
   - {fileID: 21300000, guid: 88c055f61b4a4fb4594d039b4b5be1b1, type: 3}
+  - {fileID: 21300000, guid: 99328807839493945b124120bfbd4843, type: 3}
   - {fileID: 21300000, guid: 1cddae18f48653b419dce4c75f915ecf, type: 3}
   - {fileID: 21300000, guid: 0b076758baa445742808cb1a06a96367, type: 3}
   - {fileID: 21300000, guid: 61cef1b894597924b8cc18a98839e56d, type: 3}
+  - {fileID: 21300000, guid: 2239d09946fd96140aef3bb57347f201, type: 3}
   - {fileID: 21300000, guid: c68aacf9fecacd94fb98e3d72043d048, type: 3}
   - {fileID: 21300000, guid: 5b16192a6f133ba4f9b33cf0372b80de, type: 3}
   - {fileID: 21300000, guid: 2c31ceba29b23d84e881a1a2aa4943fe, type: 3}
@@ -98,12 +104,15 @@ SpriteAtlas:
   - btn_back
   - box_offbutton
   - box_clearcastle
+  - box_firstgrade
   - box_pipe2
   - btn_chatting
   - box_pswitch_use
+  - box_secondgrade
   - box_cloud
   - box_alreadyuse
   - box_powerbox
+  - box_thirdgrade
   - box_brickbox1
   - box_fireball
   - box_onbutton

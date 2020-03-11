@@ -34,7 +34,7 @@ public class UnityPacketData : PacketData
     {
         switch (packet.TypeCode)
         {
-            case Packet.Type.SYNC_PLAYER_POS_TOSERVER:
+            case Packet.Type.SYNC_PLAYER_POS:
                 odata = ToVector2ByByte(0);
                 break;
             case Packet.Type.SYNC_PLAYER_POS_TOCLIENT:

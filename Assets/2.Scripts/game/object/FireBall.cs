@@ -5,22 +5,25 @@ using UnityEngine;
 public class FireBall : MonoBehaviour
 {
     public float speed;
-    public Vector2 direction;
-
     private Transform tr;
+    public float removeTime;
+
+
 
     private void Start()
     {
         tr = GetComponent<Transform>();
-    }
-    private void Update()
-    {
-        tr.Translate(direction * speed * Time.deltaTime);
+        Destroy(this.gameObject, removeTime);
     }
 
-    private void OnCollisionEnter2D(Collision2D coll)
+    public void Update()
     {
-        if (coll.collider.CompareTag("LOCALPLAYER"))
+        tr.Translate(Vector2.right * speed * Time.deltaTime);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("PLAYER"))
         {
             ClientGameSystem.instance.Player.Die();
         }
